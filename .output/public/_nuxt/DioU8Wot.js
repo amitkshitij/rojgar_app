@@ -1,0 +1,1 @@
+import{a2 as e,a3 as a,a4 as r,a5 as s,a6 as o,a7 as c,a8 as u,a9 as l,aa as $,ab as n}from"./DVEQIDXE.js";const t=()=>({legacy:!1,fallbackLocale:"en",locale:"en",messages:{ar:n,de:$,en:l,es:u,fr:c,id:o,pt:s,zh:r,az:a,nl:e}});export{t as default};

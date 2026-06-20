@@ -1,0 +1,5 @@
+const virtual_nuxt__2FUsers_2Famitsinha_2FDevzign_2FiOS_20Native_2Fhyperhabits_2FhyperHabitsApp_2Frojgar_app_2F_nuxt_2FnuxtFontsGlobal = "";
+export {
+  virtual_nuxt__2FUsers_2Famitsinha_2FDevzign_2FiOS_20Native_2Fhyperhabits_2FhyperHabitsApp_2Frojgar_app_2F_nuxt_2FnuxtFontsGlobal as default
+};
+//# sourceMappingURL=entry-styles-3.mjs-DzdgXrT0.js.map

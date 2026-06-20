@@ -1,0 +1,1 @@
+export { default } from "file:///Users/amitsinha/Devzign/iOS%20Native/hyperhabits/hyper-habits-app/rojgar_app/node_modules/@nuxt/vite-builder/dist/runtime/client.manifest.mjs"

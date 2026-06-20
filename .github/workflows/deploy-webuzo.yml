@@ -1,0 +1,129 @@
+name: Deploy Nuxt App to Webuzo
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nuxt-production-deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy main to production
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Verify runtime
+        run: |
+          node --version
+          npm --version
+          git --version
+
+      - name: Install dependencies
+        run: |
+          if [ -f package-lock.json ]; then
+            npm ci --no-audit --no-fund
+          else
+            npm install --no-audit --no-fund
+          fi
+
+      - name: Build Nuxt app
+        run: npm run build
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          cat > ~/.ssh/id_rsa << 'EOF'
+          ${{ secrets.SERVER_SSH_KEY }}
+          EOF
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+
+      - name: Deploy via SSH
+        run: |
+          set -euo pipefail
+
+          APP_DIR="/home/kisvps/public_html/rozgar.app"
+          APP_NAME="rozgar-app"
+          APP_PORT="3005"
+          DEPLOY_USER="${{ secrets.SERVER_USER }}"
+          DEPLOY_HOST="${{ secrets.SERVER_HOST }}"
+          DEPLOY_PORT="${{ secrets.SERVER_PORT }}"
+
+          ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p $APP_DIR"
+
+          rsync -avz --delete \
+            --exclude='.git' \
+            --exclude='.github' \
+            --exclude='node_modules' \
+            --exclude='.output' \
+            --exclude='.nuxt' \
+            --exclude='.env' \
+            --exclude='dist' \
+            -e "ssh -p $DEPLOY_PORT" \
+            ./ "$DEPLOY_USER@$DEPLOY_HOST:$APP_DIR/"
+
+          DEPLOY_SCRIPT='
+          set -euo pipefail
+
+          APP_DIR="'"${APP_DIR}"'"
+          APP_NAME="'"${APP_NAME}"'"
+          APP_PORT="'"${APP_PORT}"'"
+
+          cd "$APP_DIR"
+
+          if [ ! -f .env ]; then
+            echo "Missing $APP_DIR/.env on server"
+            exit 1
+          fi
+
+          if [ -f package-lock.json ]; then
+            npm ci --omit=dev --no-audit --no-fund
+          else
+            npm install --omit=dev --no-audit --no-fund
+          fi
+
+          npm run build
+
+          if ! command -v pm2 >/dev/null 2>&1; then
+            npm install -g pm2
+          fi
+
+          pm2 delete "$APP_NAME" >/dev/null 2>&1 || true
+          NODE_ENV=production PORT="$APP_PORT" pm2 start .output/server/index.mjs --name "$APP_NAME" --update-env
+          pm2 save
+          '
+
+          ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" "$DEPLOY_SCRIPT"
+
+      - name: Verify deployment
+        run: |
+          DEPLOY_USER="${{ secrets.SERVER_USER }}"
+          DEPLOY_HOST="${{ secrets.SERVER_HOST }}"
+          DEPLOY_PORT="${{ secrets.SERVER_PORT }}"
+
+          ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" '
+            APP_DIR="/home/kisvps/public_html/rozgar.app"
+            cd "$APP_DIR"
+
+            [ -d ".output/server" ] && echo "Nuxt server build exists"
+            pm2 list || true
+          '

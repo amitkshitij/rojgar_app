@@ -1,0 +1,5 @@
+const CvPreviewTwoColumn_vue_vue_type_style_index_0_scoped_c59ad454_lang = ".cv[data-v-c59ad454]{background-image:linear-gradient(90deg,#f8fafc 33%,#fff0 0);display:grid;grid-template-columns:1fr 2fr}[data-v-c59ad454] .cv__tags{display:flex;flex-wrap:wrap;gap:.5rem}[data-v-c59ad454] .cv__tag{border-radius:.25rem;font-size:.75rem;line-height:1.5;padding:.25rem .5rem;--tw-text-opacity:1;background-color:var(--primary);color:rgb(255 255 255/var(--tw-text-opacity,1))}.cv__bar[data-v-c59ad454]{border-width:1px;margin-bottom:.75rem;margin-top:.75rem;--tw-border-opacity:1;border-color:rgb(241 245 249/var(--tw-border-opacity,1));--tw-bg-opacity:1;background-color:rgb(241 245 249/var(--tw-bg-opacity,1));list-style:none;padding:0}.cv__bar li[data-v-c59ad454]{display:flex;justify-content:space-between}.cv__bar li+li[data-v-c59ad454]{margin-top:.75rem}";
+export {
+  CvPreviewTwoColumn_vue_vue_type_style_index_0_scoped_c59ad454_lang as default
+};
+//# sourceMappingURL=CvPreviewTwoColumn-styles-1.mjs-o_St4avJ.js.map

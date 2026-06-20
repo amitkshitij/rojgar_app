@@ -1,0 +1,48 @@
+{
+  "name": "cvfy",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "nuxi dev",
+    "build": "nuxi build",
+    "start": "nuxi start",
+    "generate": "nuxi generate",
+    "prepare": "nuxi prepare",
+    "preview": "nuxi preview",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "dependencies": {
+    "@nuxt/fonts": "^0.11.4",
+    "@nuxt/image": "^1.10.0",
+    "@tiptap/pm": "^2.14.0",
+    "@tiptap/starter-kit": "^2.14.0",
+    "@tiptap/vue-3": "^2.14.0",
+    "core-js": "^3.43.0",
+    "mysql2": "^3.22.5",
+    "nuxt": "^3.17.5"
+  },
+  "devDependencies": {
+    "@antfu/eslint-config": "^2.27.3",
+    "@domchristie/tailwind-utopia": "^1.1.1",
+    "@nuxt/eslint": "^1.12.1",
+    "@nuxt/types": "2.17.3",
+    "@nuxtjs/i18n": "^9.5.5",
+    "@nuxtjs/sitemap": "^5.3.5",
+    "@nuxtjs/tailwindcss": "^6.14.0",
+    "@vite-pwa/assets-generator": "^1.0.0",
+    "@vite-pwa/nuxt": "^1.0.4",
+    "babel-eslint": "^10.1.0",
+    "eslint": "^9.39.1",
+    "postcss": "^8.5.6",
+    "postcss-nested": "6.0.1",
+    "sharp": "^0.33.5",
+    "sharp-ico": "^0.1.5",
+    "tailwind-utopia": "github:cwsdigital/tailwind-utopia",
+    "typescript": "^5.8.3"
+  },
+  "overrides": {
+    "estree-walker": "2.0.2"
+  }
+}
