@@ -1,0 +1,28 @@
+#!/bin/bash -e
+
+APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+SECRET_ENV_FILE="${SECRET_ENV_FILE:-$HOME/.config/rozgar.secret.env}"
+PORT="${PORT:-3005}"
+
+cd "$APP_DIR"
+
+if [ -f .env ] || [ -f "$SECRET_ENV_FILE" ]; then
+  set -a
+  if [ -f .env ]; then
+    . ./.env
+  fi
+  if [ -f "$SECRET_ENV_FILE" ]; then
+    . "$SECRET_ENV_FILE"
+  fi
+  set +a
+fi
+
+export NODE_ENV="${NODE_ENV:-production}"
+export PORT
+
+if [ ! -f .output/server/index.mjs ]; then
+  echo "Missing built Nuxt server at .output/server/index.mjs" >&2
+  exit 1
+fi
+
+exec node .output/server/index.mjs

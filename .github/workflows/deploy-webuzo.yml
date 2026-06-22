@@ -1,4 +1,4 @@
-name: Deploy Nuxt App to Webuzo
+name: Release Rozgar to Production
 
 on:
   push:
@@ -10,12 +10,12 @@ permissions:
   contents: read
 
 concurrency:
-  group: nuxt-production-deploy
+  group: rozgar-release
   cancel-in-progress: true
 
 jobs:
   deploy:
-    name: Deploy main to production
+    name: Push to server and release
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -31,12 +31,6 @@ jobs:
           node-version: '20'
           cache: npm
 
-      - name: Verify runtime
-        run: |
-          node --version
-          npm --version
-          git --version
-
       - name: Install dependencies
         run: |
           if [ -f package-lock.json ]; then
@@ -45,85 +39,43 @@ jobs:
             npm install --no-audit --no-fund
           fi
 
-      - name: Build Nuxt app
+      - name: Build production app
         run: npm run build
 
       - name: Setup SSH
+        env:
+          APP_SERVER_HOST: ${{ secrets.SERVER_HOST }}
+          APP_SERVER_PORT: ${{ secrets.SERVER_PORT }}
+          APP_SERVER_SSH_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          APP_SERVER_USER: ${{ secrets.SERVER_USER }}
         run: |
           mkdir -p ~/.ssh
-          cat > ~/.ssh/id_rsa << 'EOF'
-          ${{ secrets.SERVER_SSH_KEY }}
-          EOF
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SERVER_HOST }} >> ~/.ssh/known_hosts 2>/dev/null || true
+          printf '%s\n' "$APP_SERVER_SSH_KEY" > ~/.ssh/app_server
+          chmod 600 ~/.ssh/app_server
+          ssh-keyscan -p "$APP_SERVER_PORT" -H "$APP_SERVER_HOST" >> ~/.ssh/known_hosts 2>/dev/null || true
+          {
+            echo "APP_SERVER_HOST=$APP_SERVER_HOST"
+            echo "APP_SERVER_PORT=$APP_SERVER_PORT"
+            echo "APP_SERVER_USER=$APP_SERVER_USER"
+            echo "GIT_SSH_COMMAND=ssh -i ~/.ssh/app_server -p $APP_SERVER_PORT -o UserKnownHostsFile=~/.ssh/known_hosts"
+          } >> "$GITHUB_ENV"
 
-      - name: Deploy via SSH
+      - name: Push commit to server mirror
         run: |
-          set -euo pipefail
+          git remote remove server 2>/dev/null || true
+          git remote add server "ssh://${APP_SERVER_USER}@${APP_SERVER_HOST}:${APP_SERVER_PORT}/home/kisvps/repos/rozgar.git"
+          git push server HEAD:main
 
-          APP_DIR="/home/kisvps/public_html/rozgar.app"
-          APP_NAME="rozgar-app"
-          APP_PORT="3005"
-          DEPLOY_USER="${{ secrets.SERVER_USER }}"
-          DEPLOY_HOST="${{ secrets.SERVER_HOST }}"
-          DEPLOY_PORT="${{ secrets.SERVER_PORT }}"
-
-          ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" "mkdir -p $APP_DIR"
-
-          rsync -avz --delete \
-            --exclude='.git' \
-            --exclude='.github' \
-            --exclude='node_modules' \
-            --exclude='.output' \
-            --exclude='.nuxt' \
-            --exclude='.env' \
-            --exclude='dist' \
-            -e "ssh -p $DEPLOY_PORT" \
-            ./ "$DEPLOY_USER@$DEPLOY_HOST:$APP_DIR/"
-
-          DEPLOY_SCRIPT='
-          set -euo pipefail
-
-          APP_DIR="'"${APP_DIR}"'"
-          APP_NAME="'"${APP_NAME}"'"
-          APP_PORT="'"${APP_PORT}"'"
-
-          cd "$APP_DIR"
-
-          if [ ! -f .env ]; then
-            echo "Missing $APP_DIR/.env on server"
-            exit 1
-          fi
-
-          if [ -f package-lock.json ]; then
-            npm ci --omit=dev --no-audit --no-fund
-          else
-            npm install --omit=dev --no-audit --no-fund
-          fi
-
-          npm run build
-
-          if ! command -v pm2 >/dev/null 2>&1; then
-            npm install -g pm2
-          fi
-
-          pm2 delete "$APP_NAME" >/dev/null 2>&1 || true
-          NODE_ENV=production PORT="$APP_PORT" pm2 start .output/server/index.mjs --name "$APP_NAME" --update-env
-          pm2 save
-          '
-
-          ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" "$DEPLOY_SCRIPT"
-
-      - name: Verify deployment
+      - name: Trigger server release
         run: |
-          DEPLOY_USER="${{ secrets.SERVER_USER }}"
-          DEPLOY_HOST="${{ secrets.SERVER_HOST }}"
-          DEPLOY_PORT="${{ secrets.SERVER_PORT }}"
+          ssh "${APP_SERVER_USER}@${APP_SERVER_HOST}" -p "$APP_SERVER_PORT" "cd /home/kisvps/public_html/rozgar.app && DEPLOY_BRANCH=main ./bin/server-deploy"
 
-          ssh -p "$DEPLOY_PORT" "$DEPLOY_USER@$DEPLOY_HOST" '
-            APP_DIR="/home/kisvps/public_html/rozgar.app"
-            cd "$APP_DIR"
+      - name: Verify public release
+        run: |
+          curl --fail --silent --show-error --location --max-time 30 https://rozgar.app > /tmp/rozgar-home.html
+          grep -q "CVFY\\|Create your CV\\|Rojgar" /tmp/rozgar-home.html
 
-            [ -d ".output/server" ] && echo "Nuxt server build exists"
-            pm2 list || true
-          '
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "Release failed. Check SSH access, git push to server mirror, or server-side deploy logs."

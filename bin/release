@@ -1,0 +1,69 @@
+#!/bin/bash -e
+
+APP_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+SECRET_ENV_FILE="${SECRET_ENV_FILE:-$HOME/.config/rozgar.secret.env}"
+
+cd "$APP_DIR"
+
+if [ -f .env ] || [ -f "$SECRET_ENV_FILE" ]; then
+  set -a
+  if [ -f .env ]; then
+    . ./.env
+  fi
+  if [ -f "$SECRET_ENV_FILE" ]; then
+    . "$SECRET_ENV_FILE"
+  fi
+  set +a
+fi
+
+export NODE_ENV="${NODE_ENV:-production}"
+export PORT="${PORT:-3005}"
+
+mkdir -p log tmp
+
+if command -v ss >/dev/null 2>&1; then
+  while read -r pid; do
+    kill -TERM "$pid" 2>/dev/null || true
+  done < <(
+    ss -lptn "sport = :$PORT" \
+      | grep -o 'pid=[0-9]\+' \
+      | cut -d= -f2 \
+      | sort -u
+  )
+  sleep 2
+fi
+
+if [ -f tmp/pids/app.pid ]; then
+  old_pid="$(cat tmp/pids/app.pid)"
+  if kill -0 "$old_pid" >/dev/null 2>&1; then
+    kill -TERM "$old_pid" >/dev/null 2>&1 || true
+    sleep 2
+  fi
+fi
+
+mkdir -p tmp/pids
+nohup ./bin/start-app >> log/pm2.log 2>&1 &
+echo $! > tmp/pids/app.pid
+
+release_started=0
+for _ in $(seq 1 30); do
+  if command -v ss >/dev/null 2>&1 && ss -ltn "sport = :$PORT" | grep -q ":$PORT"; then
+    release_started=1
+    break
+  fi
+
+  if [ -f tmp/pids/app.pid ] && kill -0 "$(cat tmp/pids/app.pid)" >/dev/null 2>&1; then
+    release_started=1
+    break
+  fi
+
+  sleep 1
+done
+
+if [ "$release_started" -eq 1 ]; then
+  echo "Release started successfully"
+else
+  echo "Release failed to start" >&2
+  tail -n 80 log/pm2.log >&2 || true
+  exit 1
+fi
