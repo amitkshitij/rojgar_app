@@ -20,7 +20,7 @@ export default defineNuxtConfig({
     url:
       process.env.NODE_ENV === 'dev'
         ? 'http://localhost:3000'
-        : 'https://www.cvfy.xyz',
+        : 'https://rozgar.app',
   },
 
   imports: {
@@ -154,8 +154,8 @@ export default defineNuxtConfig({
       config: true,
     },
     manifest: {
-      name: 'Cvfy',
-      short_name: 'CvFy',
+      name: 'Rojgar App',
+      short_name: 'Rojgar',
       lang: 'en',
       scope: '/',
       display: 'standalone',

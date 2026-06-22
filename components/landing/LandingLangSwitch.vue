@@ -14,7 +14,7 @@ function handleSelect(e: Event) {
 
 <template>
   <div
-    class="relative flex flex-shrink-0 justify-between items-center w-16 text-slate-700"
+    class="relative flex flex-shrink-0 justify-between items-center w-20 text-slate-700"
   >
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -37,7 +37,7 @@ function handleSelect(e: Event) {
     <select
       id="language"
       v-model="selected"
-      class="w-full pl-8 py-2 appearance-none bg-slate-100 rounded uppercase hover:opacity-80"
+      class="w-full rounded-2xl border border-slate-200 bg-slate-50 py-2 pl-8 pr-3 uppercase shadow-sm transition hover:border-violet-300 hover:bg-white"
       @change="handleSelect"
     >
       <option

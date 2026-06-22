@@ -1322,12 +1322,12 @@ const _inlineRuntimeConfig = {
       {
         "_context": "package.json",
         "_priority": -10,
-        "name": "cvfy"
+        "name": "rojgar-app"
       },
       {
         "_priority": -3,
         "_context": "nuxt-site-config:config",
-        "url": "https://www.cvfy.xyz"
+        "url": "https://rozgar.app"
       },
       {
         "_context": "@nuxtjs/i18n",

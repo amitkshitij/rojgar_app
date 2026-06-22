@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { useCvState } from '~/data/useCvState'
 
-const CVFY_IMAGE = 'https://cvfy.xyz/CvFy-no-border.png'
+const APP_IMAGE = 'https://rozgar.app/CvFy-no-border.png'
 
 const { setUpCvSettings } = useCvState()
 const route = useRoute()
 const { t, locale } = useI18n()
 
-const href = `https://cvfy.xyz${route.path}`
+const href = `https://rozgar.app${route.path}`
 
 onMounted(async () => {
   await setUpCvSettings()
@@ -40,7 +40,7 @@ useHead({
     },
     {
       property: 'og:image',
-      content: CVFY_IMAGE,
+      content: APP_IMAGE,
     },
     {
       property: 'og:author',
@@ -76,7 +76,7 @@ useHead({
     },
     {
       name: 'twitter:image',
-      content: CVFY_IMAGE,
+      content: APP_IMAGE,
     },
     {
       name: 'twitter:image:alt',

@@ -117,21 +117,6 @@ async function persistSettings(mode: 'auto' | 'manual') {
   <div class="settings">
     <div class="flex justify-between items-center title pt-2 px-6">
       <LandingLogo />
-      <a
-        class="buy-me-a-coffee"
-        href="https://ko-fi.com/X8X4COWK0"
-        target="_blank"
-        rel="noopener noreferrer"
-        aria-label="Buy me a coffee"
-      >
-        <img
-          class="buy-me-a-coffee__image"
-          src="https://cdn.ko-fi.com/cdn/kofi5.png?v=3"
-          width="118px"
-          height="30px"
-          alt="Buy me a coffee button"
-        >
-      </a>
     </div>
     <h2 class="flex flex-wrap text-xl/normal pt-10 px-6 tracking-wide uppercase">
       <span class="title__text">
