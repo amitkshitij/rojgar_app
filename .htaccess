@@ -1,0 +1,5 @@
+RewriteEngine On
+
+RewriteRule ^index\.php$ http://127.0.0.1:3005/ [P,L,QSA]
+RewriteRule ^$ http://127.0.0.1:3005/ [P,L,QSA]
+RewriteRule ^(.*)$ http://127.0.0.1:3005/$1 [P,L,QSA]
